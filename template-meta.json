@@ -1,0 +1,8 @@
+{
+  "name": "Firecrawl | Self-Hosted Web Scraping & Crawling API for AI",
+  "short_name": "Firecrawl Self-Hosted",
+  "description": "Turn websites into LLM-ready markdown: scrape, crawl, map, search. API key.",
+  "category": "AI/ML",
+  "image": "https://raw.githubusercontent.com/nomideusz/firecrawl-railway/main/icon.png",
+  "deploy_marker": "nomideusz/firecrawl-railway"
+}

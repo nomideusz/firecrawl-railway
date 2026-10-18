@@ -1,0 +1,347 @@
+{
+ "buckets": {},
+ "services": {
+  "850c2a47-46f2-4d9d-9963-bf8ea6585bd9": {
+   "icon": "https://raw.githubusercontent.com/nomideusz/firecrawl-railway/main/icon.png",
+   "name": "Firecrawl",
+   "build": {
+    "dockerfilePath": "Dockerfile"
+   },
+   "source": {
+    "repo": "https://github.com/nomideusz/firecrawl-railway",
+    "rootDirectory": null
+   },
+   "deploy": {
+    "startCommand": null,
+    "healthcheckPath": "/railway-health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "networking": {
+    "serviceDomains": {
+     "<hasDomain>:8080": {
+      "port": 8080
+     }
+    }
+   },
+   "variables": {
+    "FIRECRAWL_API_KEY": {
+     "defaultValue": "fc-${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Your API key. Send it as Authorization: Bearer <key>, the way every Firecrawl SDK, the MCP server and the n8n node do.",
+     "isOptional": false
+    },
+    "FIRECRAWL_UPSTREAM": {
+     "defaultValue": "${{API.RAILWAY_PRIVATE_DOMAIN}}:3002",
+     "description": "Firecrawl API on the private network.",
+     "isOptional": false
+    },
+    "BULL_AUTH_KEY": {
+     "defaultValue": "${{API.BULL_AUTH_KEY}}",
+     "description": "Queue dashboard key, from the API service.",
+     "isOptional": false
+    },
+    "PORT": {
+     "defaultValue": "8080",
+     "description": "Gateway port. Leave as is.",
+     "isOptional": false
+    }
+   }
+  },
+  "1d941470-9f94-4887-8606-6f165b993597": {
+   "icon": "https://raw.githubusercontent.com/nomideusz/firecrawl-railway/main/icon.png",
+   "name": "API",
+   "build": {},
+   "source": {
+    "image": "ghcr.io/firecrawl/firecrawl:2.11.538"
+   },
+   "deploy": {
+    "startCommand": "/bin/sh -c 'node -e \"const n=require(\\\"net\\\");const w=a=>new Promise(r=>{const t=()=>{const i=a.lastIndexOf(\\\":\\\");const s=n.connect(+a.slice(i+1),a.slice(0,i));s.on(\\\"connect\\\",()=>{s.end();r()});s.on(\\\"error\\\",()=>{s.destroy();setTimeout(t,2000)})};t()});Promise.all(process.env.WAIT_FOR.split(\\\" \\\").map(w)).then(()=>process.exit(0))\" && exec node dist/src/harness.js --start-docker'",
+    "healthcheckPath": "/v0/health/liveness",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "healthcheckTimeout": 600
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "variables": {
+    "HOST": {
+     "defaultValue": "::",
+     "description": "Listen on all interfaces (IPv4 and IPv6) for Railway's private network.",
+     "isOptional": false
+    },
+    "PORT": {
+     "defaultValue": "3002",
+     "description": "API port inside the private network. Leave as is.",
+     "isOptional": false
+    },
+    "ENV": {
+     "defaultValue": "local",
+     "description": "Self-hosted mode.",
+     "isOptional": false
+    },
+    "USE_DB_AUTHENTICATION": {
+     "defaultValue": "false",
+     "description": "Self-hosted mode: no Supabase. The Firecrawl gateway checks the API key instead.",
+     "isOptional": false
+    },
+    "REDIS_URL": {
+     "defaultValue": "redis://default:${{Redis.REDIS_PASSWORD}}@${{Redis.RAILWAY_PRIVATE_DOMAIN}}:6379",
+     "description": "Redis for crawl state and rate limits.",
+     "isOptional": false
+    },
+    "REDIS_RATE_LIMIT_URL": {
+     "defaultValue": "redis://default:${{Redis.REDIS_PASSWORD}}@${{Redis.RAILWAY_PRIVATE_DOMAIN}}:6379",
+     "description": "Redis for rate limits.",
+     "isOptional": false
+    },
+    "PLAYWRIGHT_MICROSERVICE_URL": {
+     "defaultValue": "http://${{Playwright.RAILWAY_PRIVATE_DOMAIN}}:3000/scrape",
+     "description": "Headless browser service for JavaScript-heavy pages.",
+     "isOptional": false
+    },
+    "NUQ_RABBITMQ_URL": {
+     "defaultValue": "amqp://firecrawl:${{RabbitMQ.RABBITMQ_DEFAULT_PASS}}@${{RabbitMQ.RAILWAY_PRIVATE_DOMAIN}}:5672",
+     "description": "RabbitMQ for job notifications.",
+     "isOptional": false
+    },
+    "POSTGRES_HOST": {
+     "defaultValue": "${{Postgres.RAILWAY_PRIVATE_DOMAIN}}",
+     "description": "Job queue database host.",
+     "isOptional": false
+    },
+    "POSTGRES_PORT": {
+     "defaultValue": "5432",
+     "description": "Job queue database port.",
+     "isOptional": false
+    },
+    "POSTGRES_USER": {
+     "defaultValue": "${{Postgres.POSTGRES_USER}}",
+     "description": "Job queue database user.",
+     "isOptional": false
+    },
+    "POSTGRES_PASSWORD": {
+     "defaultValue": "${{Postgres.POSTGRES_PASSWORD}}",
+     "description": "Job queue database password.",
+     "isOptional": false
+    },
+    "POSTGRES_DB": {
+     "defaultValue": "${{Postgres.POSTGRES_DB}}",
+     "description": "Job queue database name.",
+     "isOptional": false
+    },
+    "WAIT_FOR": {
+     "defaultValue": "${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432 ${{RabbitMQ.RAILWAY_PRIVATE_DOMAIN}}:5672 ${{Redis.RAILWAY_PRIVATE_DOMAIN}}:6379",
+     "description": "Services the API waits for before starting its workers.",
+     "isOptional": false
+    },
+    "NUQ_WORKER_COUNT": {
+     "defaultValue": "3",
+     "description": "Scrape workers, each runs one page at a time (~400 MB each). Raise for more parallel scraping, lower to save memory.",
+     "isOptional": false
+    },
+    "BULL_AUTH_KEY": {
+     "defaultValue": "${{secret(24, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Key in the queue dashboard URL: https://<your domain>/admin/<BULL_AUTH_KEY>/queues",
+     "isOptional": false
+    },
+    "OPENAI_API_KEY": {
+     "defaultValue": "",
+     "description": "Optional. Enables extract, JSON and summary formats. Any OpenAI-compatible API works with OPENAI_BASE_URL.",
+     "isOptional": true
+    },
+    "OPENAI_BASE_URL": {
+     "defaultValue": "",
+     "description": "Optional. OpenAI-compatible endpoint (OpenRouter, a LiteLLM gateway, ...).",
+     "isOptional": true
+    },
+    "MODEL_NAME": {
+     "defaultValue": "",
+     "description": "Optional. Model for extract/JSON, for example gpt-5-mini.",
+     "isOptional": true
+    },
+    "SEARXNG_ENDPOINT": {
+     "defaultValue": "",
+     "description": "Optional. Your SearXNG URL for /search. Without it Firecrawl uses its built-in search.",
+     "isOptional": true
+    },
+    "PROXY_SERVER": {
+     "defaultValue": "",
+     "description": "Optional. Proxy for all fetches, for example http://proxy.example.com:8080.",
+     "isOptional": true
+    },
+    "PROXY_USERNAME": {
+     "defaultValue": "",
+     "description": "Optional. Proxy username.",
+     "isOptional": true
+    },
+    "PROXY_PASSWORD": {
+     "defaultValue": "",
+     "description": "Optional. Proxy password.",
+     "isOptional": true
+    },
+    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+     "defaultValue": "60",
+     "description": "Time running jobs get to finish on redeploy.",
+     "isOptional": false
+    }
+   }
+  },
+  "ca448247-14e2-4ed4-b10c-e3032bda160c": {
+   "icon": "https://devicons.railway.app/i/playwright.svg",
+   "name": "Playwright",
+   "build": {},
+   "source": {
+    "image": "ghcr.io/firecrawl/playwright-service@sha256:717699bf8a61d94451926c810d19ca1d36278192907e307bf5229a558b08fcc6"
+   },
+   "deploy": {
+    "startCommand": null,
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "variables": {
+    "PORT": {
+     "defaultValue": "3000",
+     "description": "Browser service port. Leave as is.",
+     "isOptional": false
+    },
+    "MAX_CONCURRENT_PAGES": {
+     "defaultValue": "10",
+     "description": "Browser pages open at once.",
+     "isOptional": false
+    },
+    "BLOCK_MEDIA": {
+     "defaultValue": "true",
+     "description": "Skip images, video and fonts while rendering. Faster and lighter.",
+     "isOptional": false
+    },
+    "PROXY_SERVER": {
+     "defaultValue": "${{API.PROXY_SERVER}}",
+     "description": "Proxy, from the API service.",
+     "isOptional": true
+    },
+    "PROXY_USERNAME": {
+     "defaultValue": "${{API.PROXY_USERNAME}}",
+     "description": "Proxy username, from the API service.",
+     "isOptional": true
+    },
+    "PROXY_PASSWORD": {
+     "defaultValue": "${{API.PROXY_PASSWORD}}",
+     "description": "Proxy password, from the API service.",
+     "isOptional": true
+    }
+   }
+  },
+  "61c77b78-4106-48c6-816b-186be2378480": {
+   "icon": "https://devicons.railway.app/i/postgresql.svg",
+   "name": "Postgres",
+   "build": {},
+   "source": {
+    "image": "ghcr.io/firecrawl/nuq-postgres@sha256:9b638af78d99873bc0ba2b57c9cbcd01df6ce96efeaa72d36cfbe0f76521e8fc"
+   },
+   "deploy": {
+    "startCommand": null,
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "volumeMounts": {
+    "8629b1ea-f90d-4289-8501-cca8124fb86e": {
+     "mountPath": "/var/lib/postgresql/data"
+    }
+   },
+   "variables": {
+    "POSTGRES_DB": {
+     "defaultValue": "postgres",
+     "description": "Must stay postgres: pg_cron runs the queue's cleanup jobs in this database.",
+     "isOptional": false
+    },
+    "POSTGRES_USER": {
+     "defaultValue": "postgres",
+     "description": "Database user",
+     "isOptional": false
+    },
+    "POSTGRES_PASSWORD": {
+     "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Auto-generated database password",
+     "isOptional": false
+    },
+    "PGDATA": {
+     "defaultValue": "/var/lib/postgresql/data/pgdata",
+     "description": "Data subdirectory - keeps Postgres happy on Railway volumes",
+     "isOptional": false
+    },
+    "RAILWAY_DEPLOYMENT_DRAINING_SECONDS": {
+     "defaultValue": "60",
+     "description": "Time for Postgres to shut down cleanly on redeploy",
+     "isOptional": false
+    }
+   }
+  },
+  "5687f529-777c-4d47-a315-8de2ad1c7f05": {
+   "icon": "https://devicons.railway.app/i/redis.svg",
+   "name": "Redis",
+   "build": {},
+   "source": {
+    "image": "redis:8.10.2-alpine"
+   },
+   "deploy": {
+    "startCommand": "/bin/sh -c \"rm -rf /data/lost+found && exec docker-entrypoint.sh redis-server --requirepass $REDIS_PASSWORD --maxmemory-policy noeviction --appendonly yes --dir /data\"",
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "volumeMounts": {
+    "a2ad5153-4f33-4a36-9cf3-9879153003b7": {
+     "mountPath": "/data"
+    }
+   },
+   "variables": {
+    "REDIS_PASSWORD": {
+     "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Auto-generated Redis password",
+     "isOptional": false
+    }
+   }
+  },
+  "91accceb-37c4-47e3-b1a0-c115f53721c1": {
+   "icon": "https://devicons.railway.app/i/rabbitmq.svg",
+   "name": "RabbitMQ",
+   "build": {},
+   "source": {
+    "image": "rabbitmq:4.1.8-alpine"
+   },
+   "deploy": {
+    "startCommand": null,
+    "healthcheckPath": null,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+   },
+   "networking": {
+    "serviceDomains": {}
+   },
+   "variables": {
+    "RABBITMQ_DEFAULT_USER": {
+     "defaultValue": "firecrawl",
+     "description": "RabbitMQ user",
+     "isOptional": false
+    },
+    "RABBITMQ_DEFAULT_PASS": {
+     "defaultValue": "${{secret(32, \"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\")}}",
+     "description": "Auto-generated RabbitMQ password",
+     "isOptional": false
+    }
+   }
+  }
+ }
+}
