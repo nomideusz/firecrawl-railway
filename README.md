@@ -22,7 +22,7 @@ What it adds over the plain Docker Compose setup:
 - **An API key.** Self-hosted Firecrawl has no authentication, so anyone who finds the URL could scrape through your server. Here every request needs `Authorization: Bearer <FIRECRAWL_API_KEY>`, the header every Firecrawl SDK, the MCP server and the n8n node already send. Requests without it get a 401.
 - **Pinned official images.** The API, Playwright and Postgres images come from Firecrawl's own registry at fixed versions (Playwright and Postgres by digest, as they only publish `latest`), so a redeploy never picks up an untested build.
 - **Clean startup order.** The API waits for Postgres, RabbitMQ and Redis before starting its workers. Without that, a worker that starts first crashes the whole container.
-- **Memory you can tune.** `NUQ_WORKER_COUNT` sets how many pages are scraped in parallel. Each worker uses about 400 MB, and the default of 3 keeps the API near 2.4 GB instead of 3.2 GB.
+- **Memory you can tune.** `NUQ_WORKER_COUNT` sets how many pages are scraped in parallel. Each worker uses about 400 MB, and the default of 3 (upstream runs 5) saves roughly 800 MB.
 
 ## Common Use Cases
 
@@ -81,7 +81,7 @@ const fc = new Firecrawl({ apiKey: "<FIRECRAWL_API_KEY>", apiUrl: "https://<your
 - Anyone with the API key can make your server fetch any URL. Keep the key private and rotate it (change `FIRECRAWL_API_KEY` and redeploy the Firecrawl service) if it leaks.
 - Long crawls run in the background: `/v2/crawl` returns an ID right away, and you poll `/v2/crawl/<id>` for results.
 
-**Memory.** Measured on Railway at idle: API about MEM_API, Playwright about MEM_PW, Postgres, Redis, RabbitMQ and the gateway about MEM_REST together. Plan for MEM_TOTAL, so the Hobby plan or above.
+**Memory.** Measured on Railway at idle: the API about 2.7 GB (with 3 workers), Playwright about 225 MB, and Postgres, Redis, RabbitMQ and the gateway about 370 MB together. Plan for about 3.3 GB in total, so the Hobby plan or above.
 
 ## Why Deploy Firecrawl on Railway?
 
