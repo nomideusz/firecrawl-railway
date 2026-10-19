@@ -2,13 +2,13 @@
  "buckets": {},
  "services": {
   "850c2a47-46f2-4d9d-9963-bf8ea6585bd9": {
-   "icon": "https://raw.githubusercontent.com/nomideusz/firecrawl-railway/main/icon.png",
+   "icon": "https://raw.githubusercontent.com/two-workspaces/firecrawl/main/icon.png",
    "name": "Firecrawl",
    "build": {
     "dockerfilePath": "Dockerfile"
    },
    "source": {
-    "repo": "https://github.com/nomideusz/firecrawl-railway",
+    "repo": "https://github.com/two-workspaces/firecrawl",
     "rootDirectory": null
    },
    "deploy": {
@@ -48,7 +48,7 @@
    }
   },
   "1d941470-9f94-4887-8606-6f165b993597": {
-   "icon": "https://raw.githubusercontent.com/nomideusz/firecrawl-railway/main/icon.png",
+   "icon": "https://raw.githubusercontent.com/two-workspaces/firecrawl/main/icon.png",
    "name": "API",
    "build": {},
    "source": {

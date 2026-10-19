@@ -39,7 +39,7 @@ What it adds over the plain Docker Compose setup:
 
 - [Firecrawl documentation](https://docs.firecrawl.dev)
 - [Firecrawl on GitHub](https://github.com/firecrawl/firecrawl)
-- [Template source on GitHub](https://github.com/nomideusz/firecrawl-railway)
+- [Template source on GitHub](https://github.com/two-workspaces/firecrawl)
 
 ### Implementation Details
 
